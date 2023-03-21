@@ -18,7 +18,7 @@ const STATUS = {
 };
 export class App extends Component {
   state = {
-    imagesList: null,
+    imagesList: [],
     page: 1,
     search: '',
     status: '',
@@ -42,17 +42,21 @@ export class App extends Component {
           toast.warn(`Sorry! We didn't find anything, change your request`);
           return;
         }
-        onStatusChange(STATUS.succes);
-        this.setState({ imagesList: data });
-        this.props.onRecordingImagesList(data.hits);
-        this.props.onWriteTotalHits(data.totalHits);
-        if (prevState.search !== search) {
-          return;
+
+        this.setState(prevState => ({
+          imagesList: [prevState.images, ...data.hits],
+          totalhits: data.totalhits,
+        }));
+        // this.props.onRecordingImagesList(data.hits);
+        // this.props.onWriteTotalHits(data.totalHits);
+        if (page === 1) {
+          toast.success(`Hooray! We found ${data.totalHits} images.`);
         }
-        toast.success(`Hooray! We found ${data.totalHits} images.`);
       } catch (error) {
         onStatusChange(STATUS.error);
         toast.error('Opps! Something went wrong');
+      } finally {
+        onStatusChange(STATUS.succes);
       }
     }
   }
@@ -65,21 +69,21 @@ export class App extends Component {
   };
 
   handleFormSubmit = search => {
-    this.setState({ page: 1, search, imagesList: null });
+    this.setState({ page: 1, search, imagesList: [], totalhits: 0 });
   };
 
-  recordingImagesList = data => {
-    if (!this.state.imagesList) {
-      this.setState({ imagesList: data });
-      return;
-    }
-    if (this.state.imagesList) {
-      this.setState(prevState => ({
-        imagesList: [...prevState.imagesList, ...data],
-      }));
-      return;
-    }
-  };
+  // recordingImagesList = data => {
+  //   if (!this.state.imagesList) {
+  //     this.setState({ imagesList: data });
+  //     return;
+  //   }
+  //   if (this.state.imagesList) {
+  //     this.setState(prevState => ({
+  //       imagesList: [...prevState.imagesList, ...data],
+  //     }));
+  //     return;
+  //   }
+  // };
 
   writeLargeImage = largeImage => {
     this.setState({ largeImage });
@@ -106,14 +110,19 @@ export class App extends Component {
     return (
       <AppStyled>
         <Searchbar onSubmit={this.handleFormSubmit} />
-        {!!imagesList?.length && <ImageGallery imagesList={imagesList} />}
+        {!!imagesList?.length && (
+          <ImageGallery
+            imagesList={imagesList}
+            writeLargeImage={writeLargeImage}
+          ></ImageGallery>
+        )}
 
         {status === 'loading' && <Loader />}
         <ToastContainer autoClose={2000} />
         {showModal && (
           <Modal largeImg={largeImage} onToggle={this.toggleModal} />
         )}
-        {imagesList && status !== 'loading' && totalhits > 12 && (
+        {status !== 'loading' && imagesList !== totalhits > 12 && (
           <ButtonLoadMore loadMore={this.loadMore} />
         )}
       </AppStyled>
