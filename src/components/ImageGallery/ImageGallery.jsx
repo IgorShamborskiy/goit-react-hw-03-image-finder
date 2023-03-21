@@ -1,50 +1,9 @@
 import PropTypes from 'prop-types';
-import { toast } from 'react-toastify';
 import { Component } from 'react';
 import { Gallery } from './ImageGallery.styled';
-import { getImages } from '../../Api/Api';
-
-const STATUS = {
-  idle: 'idle',
-  loading: 'loading',
-  succes: 'succes',
-  error: 'error',
-};
 
 export class ImageGallery extends Component {
-  state = {
-    imagesList: null,
-  };
-
-  async componentDidUpdate(prevProps) {
-    const nextRequest = this.props.searchImages;
-    const prevRequest = prevProps.searchImages;
-    const prevPage = this.props.page;
-    const nextPage = prevProps.page;
-    const { onStatusChange } = this.props;
-
-    if (prevRequest !== nextRequest || prevPage !== nextPage) {
-      onStatusChange(STATUS.loading);
-      try {
-        const data = await getImages(nextRequest, prevPage);
-        if (data.hits.length === 0) {
-          toast.warn(`Sorry! We didn't find anything, change your request`);
-          return;
-        }
-        onStatusChange(STATUS.succes);
-        this.setState({ imagesList: data });
-        this.props.onRecordingImagesList(data.hits);
-        this.props.onWriteTotalHits(data.totalHits);
-        if (prevPage !== nextPage) {
-          return;
-        }
-        toast.success(`Hooray! We found ${data.totalHits} images.`);
-      } catch (error) {
-        onStatusChange(STATUS.error);
-        toast.error('Opps! Something went wrong');
-      }
-    }
-  }
+  state = {};
 
   render() {
     const { imagesList } = this.state;
